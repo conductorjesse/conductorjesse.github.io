@@ -3,131 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recursion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Recursive Block Diagram</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        :root {
+            --bg-color: #121212;
+            --box-bg-color: #1e1e1e;
+            --border-color: #3a3a3a;
+            --glow-color: #00aaff;
+            --arrow-color: #444444;
+            --zoom-duration: 1.2s;
         }
-        /* Custom style for the canvas glow */
-        canvas {
-            filter: drop-shadow(0 0 15px rgba(79, 70, 229, 0.4));
+
+        /* --- Basic Setup --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
+
+        #viewport {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Diagram Styling --- */
+        .diagram-container {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 40px;
+            padding: 50px;
+            box-sizing: border-box;
+            transform-origin: 0 0; /* Will be changed by JS */
+            transition: transform var(--zoom-duration) cubic-bezier(0.42, 0, 0.58, 1);
+        }
+
+        .box {
+            position: relative;
+            background-color: var(--box-bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* New diagrams start invisible and fade in after zoom */
+            opacity: 1;
+        }
+        
+        .box .diagram-container {
+            opacity: 0;
+            transition: opacity 0.5s ease 0.8s; /* Fade in after zoom animation */
+        }
+        
+        .box:hover {
+            border-color: var(--glow-color);
+            box-shadow: 0 0 15px var(--glow-color), 0 0 5px var(--glow-color) inset;
+            transform: scale(1.05);
+        }
+
+        /* --- Arrow Styling --- */
+        .arrow {
+            position: absolute;
+            background: var(--arrow-color);
+            z-index: -1;
+        }
+        .arrow.right { height: 4px; }
+        .arrow.down { width: 4px; }
+        .arrow.left { height: 4px; }
+        .arrow.up { width: 4px; }
+        .arrow::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+        /* Arrowhead directions */
+        .arrow.right::after { border-width: 8px 0 8px 12px; border-color: transparent transparent transparent var(--arrow-color); right: -12px; top: -6px; }
+        .arrow.down::after { border-width: 12px 8px 0 8px; border-color: var(--arrow-color) transparent transparent transparent; bottom: -12px; left: -6px; }
+        .arrow.left::after { border-width: 8px 12px 8px 0; border-color: transparent var(--arrow-color) transparent transparent; left: -12px; top: -6px; }
+        .arrow.up::after { border-width: 0 8px 12px 8px; border-color: transparent transparent var(--arrow-color) transparent; top: -12px; left: -6px; }
+
+        /* Positioning of individual arrows */
+        #arrow-1-2 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-2-3 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-3-4 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-4-5 { left: 50%; top: 100%; height: 40px; transform: translateX(-50%); }
+        #arrow-5-6 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-6-7 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-7-8 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
+        #arrow-8-1 { left: 50%; bottom: 100%; height: 40px; transform: translateX(-50%); }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 antialiased">
+<body>
 
-    <div class="flex flex-col items-center justify-center min-h-screen p-6 relative overflow-hidden">
-        
-        <!-- Background decorative gradient -->
-        <div class="absolute top-0 left-0 -translate-x-1/4 -translate-y-1/4 w-96 h-96 bg-indigo-600/30 rounded-full blur-3xl opacity-50"></div>
-        <div class="absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-3xl opacity-50"></div>
-
-        <div class="w-full max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-center gap-12 z-10">
-
-            <!-- Left: Text Content -->
-            <div class="text-center md:text-left md:w-1/2">
-                <h1 class="text-5xl md:text-6xl font-bold text-white tracking-tight">Recursion</h1>
-                <p class="mt-6 text-lg text-gray-400">
-                    We solve complex challenges through elegant, iterative solutions. By breaking down the largest problems into their fundamental components, we build foundations for scalable and resilient systems.
-                </p>
-                <div class="mt-8 flex items-center justify-center md:justify-start gap-4">
-                    <a href="#" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300">
-                        Get In Touch
-                    </a>
-                    <div class="flex items-center gap-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="LinkedIn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-                        </a>
-                        <a href="#" class="text-gray-400 hover:text-white transition-colors" aria-label="GitHub">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Canvas Graphic -->
-            <div class="w-64 h-64 md:w-80 md:h-80 flex-shrink-0">
-                <canvas id="recursionCanvas"></canvas>
-            </div>
+    <div id="viewport">
         </div>
-    </div>
 
     <script>
-        const canvas = document.getElementById('recursionCanvas');
-        const ctx = canvas.getContext('2d');
-        let animationFrameId;
+        const viewport = document.getElementById('viewport');
 
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            const size = Math.min(container.clientWidth, container.clientHeight);
-            canvas.width = size * window.devicePixelRatio;
-            canvas.height = size * window.devicePixelRatio;
-            canvas.style.width = `${size}px`;
-            canvas.style.height = `${size}px`;
-            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        /**
+         * Creates a complete diagram element with 8 boxes and arrows.
+         * @returns {HTMLElement} The diagram container element.
+         */
+        function createDiagram() {
+            const container = document.createElement('div');
+            container.className = 'diagram-container';
+
+            const boxesData = [
+                { id: 1, gridPos: '1 / 1' }, { id: 2, gridPos: '1 / 2' },
+                { id: 3, gridPos: '1 / 3' }, { id: 4, gridPos: '1 / 4' },
+                { id: 8, gridPos: '2 / 1' }, { id: 7, gridPos: '2 / 2' },
+                { id: 6, gridPos: '2 / 3' }, { id: 5, gridPos: '2 / 4' }
+            ];
+            
+            const arrowsData = [
+                { id: 'arrow-1-2', parent: 1, class: 'arrow right' }, { id: 'arrow-2-3', parent: 2, class: 'arrow right' },
+                { id: 'arrow-3-4', parent: 3, class: 'arrow right' }, { id: 'arrow-4-5', parent: 4, class: 'arrow down' },
+                { id: 'arrow-5-6', parent: 6, class: 'arrow left' },  { id: 'arrow-6-7', parent: 7, class: 'arrow left' },
+                { id: 'arrow-7-8', parent: 8, class: 'arrow left' },  { id: 'arrow-8-1', parent: 1, class: 'arrow up' }
+            ];
+
+            const boxElements = {};
+
+            // Create boxes
+            boxesData.forEach(data => {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.dataset.id = `box-${data.id}`;
+                box.style.gridArea = data.gridPos;
+                container.appendChild(box);
+                boxElements[data.id] = box;
+            });
+
+            // Create and attach arrows to their parent boxes
+            arrowsData.forEach(data => {
+                const arrow = document.createElement('div');
+                arrow.id = data.id;
+                arrow.className = data.class;
+                boxElements[data.parent].appendChild(arrow);
+            });
+            
+            return container;
         }
 
-        function drawFibonacciSpiral() {
-            // Configuration
-            const steps = 12;
-            const scaleFactor = 3; 
-            const rotation = performance.now() * 0.0001; // Slow rotation effect
+        // --- Main Logic ---
 
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Listen for clicks anywhere in the viewport
+        viewport.addEventListener('click', function(event) {
+            // Check if the clicked element is a box and doesn't already contain a zoomed diagram
+            if (event.target.matches('.box') && !event.target.querySelector('.diagram-container')) {
+                const box = event.target;
+                const diagramContainer = box.parentElement;
 
-            // Center the spiral
-            ctx.save();
-            ctx.translate(canvas.width / 2 / window.devicePixelRatio, canvas.height / 2 / window.devicePixelRatio);
-            ctx.rotate(rotation);
+                // Make other boxes in the same diagram unclickable
+                diagramContainer.querySelectorAll('.box').forEach(b => {
+                    if (b !== box) b.style.pointerEvents = 'none';
+                });
 
-            let a = 0;
-            let b = 1;
-            
-            // Set up line style
-            const gradient = ctx.createLinearGradient(-canvas.width/4, -canvas.height/4, canvas.width/4, canvas.height/4);
-            gradient.addColorStop(0, '#818cf8'); // Indigo-400
-            gradient.addColorStop(1, '#c084fc'); // Purple-400
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 2;
+                // 1. Calculate the scale factor needed to make the box fill the viewport
+                const viewportWidth = viewport.clientWidth;
+                const boxWidth = box.offsetWidth;
+                const scale = viewportWidth / boxWidth;
+                
+                // 2. Calculate the position of the box relative to the viewport
+                const boxRect = box.getBoundingClientRect();
+                
+                // 3. Set the transform-origin of the container to the center of the clicked box
+                // We use getBoundingClientRect because it's relative to the viewport, which handles
+                // any existing transforms on parent elements.
+                const originX = boxRect.left + boxRect.width / 2;
+                const originY = boxRect.top + boxRect.height / 2;
+                diagramContainer.style.transformOrigin = `${originX}px ${originY}px`;
+                
+                // 4. Apply the scale transform to zoom in
+                diagramContainer.style.transform = `scale(${scale})`;
 
-            ctx.beginPath();
-            
-            // Move to the center to start the spiral
-            ctx.moveTo(0, 0);
-
-            for (let i = 0; i < steps; i++) {
-                const fib = a + b;
-                a = b;
-                b = fib;
-
-                // We draw quarter-circle arcs, rotating each time
-                const radius = b * scaleFactor;
-                ctx.arc(0, 0, radius, -Math.PI / 2, 0);
-                ctx.rotate(Math.PI / 2);
+                // 5. Create a new diagram and append it inside the clicked box
+                const newDiagram = createDiagram();
+                box.appendChild(newDiagram);
+                
+                // 6. After the zoom animation finishes, fade in the new diagram
+                setTimeout(() => {
+                    newDiagram.style.opacity = '1';
+                }, 800); // Should match the transition delay in CSS
             }
-
-            ctx.stroke();
-            ctx.restore();
-            
-            animationFrameId = requestAnimationFrame(drawFibonacciSpiral);
-        }
-        
-        // Initial setup and event listener
-        window.addEventListener('resize', () => {
-            cancelAnimationFrame(animationFrameId);
-            resizeCanvas();
-            drawFibonacciSpiral();
         });
 
-        // Start the animation
-        resizeCanvas();
-        drawFibonacciSpiral();
+        // Create and append the initial diagram on page load
+        viewport.appendChild(createDiagram());
     </script>
-
 </body>
 </html>
