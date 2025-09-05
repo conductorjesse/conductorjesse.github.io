@@ -3,205 +3,614 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recursive Block Diagram</title>
+    <title>Recursion - Supporting every technical founder on their lab-to-market journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --bg-color: #121212;
-            --box-bg-color: #1e1e1e;
-            --border-color: #3a3a3a;
-            --glow-color: #00aaff;
-            --arrow-color: #444444;
-            --zoom-duration: 1.2s;
+        /* ===== BASE STYLES ===== */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: #f1f5f9;
+            overflow-x: hidden;
         }
 
-        /* --- Basic Setup --- */
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        #viewport {
-            position: relative;
+        /* ===== GAME CANVAS ===== */
+        #game-canvas {
+            display: block;
             width: 100%;
             height: 100%;
         }
 
-        /* --- Diagram Styling --- */
-        .diagram-container {
-            position: absolute;
-            inset: 0;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 40px;
-            padding: 50px;
-            box-sizing: border-box;
-            transform-origin: 0 0; /* Will be changed by JS */
-            transition: transform var(--zoom-duration) cubic-bezier(0.42, 0, 0.58, 1);
+        /* ===== LANDING PAGE STYLES ===== */
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
         }
 
-        .box {
-            position: relative;
-            background-color: var(--box-bg-color);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
+        .card-glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            /* New diagrams start invisible and fade in after zoom */
-            opacity: 1;
-        }
-        
-        .box .diagram-container {
-            opacity: 0;
-            transition: opacity 0.5s ease 0.8s; /* Fade in after zoom animation */
-        }
-        
-        .box:hover {
-            border-color: var(--glow-color);
-            box-shadow: 0 0 15px var(--glow-color), 0 0 5px var(--glow-color) inset;
-            transform: scale(1.05);
         }
 
-        /* --- Arrow Styling --- */
-        .arrow {
-            position: absolute;
-            background: var(--arrow-color);
-            z-index: -1;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
         }
-        .arrow.right { height: 4px; }
-        .arrow.down { width: 4px; }
-        .arrow.left { height: 4px; }
-        .arrow.up { width: 4px; }
-        .arrow::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-        }
-        /* Arrowhead directions */
-        .arrow.right::after { border-width: 8px 0 8px 12px; border-color: transparent transparent transparent var(--arrow-color); right: -12px; top: -6px; }
-        .arrow.down::after { border-width: 12px 8px 0 8px; border-color: var(--arrow-color) transparent transparent transparent; bottom: -12px; left: -6px; }
-        .arrow.left::after { border-width: 8px 12px 8px 0; border-color: transparent var(--arrow-color) transparent transparent; left: -12px; top: -6px; }
-        .arrow.up::after { border-width: 0 8px 12px 8px; border-color: transparent transparent var(--arrow-color) transparent; top: -12px; left: -6px; }
 
-        /* Positioning of individual arrows */
-        #arrow-1-2 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-2-3 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-3-4 { top: 50%; left: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-4-5 { left: 50%; top: 100%; height: 40px; transform: translateX(-50%); }
-        #arrow-5-6 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-6-7 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-7-8 { top: 50%; right: 100%; width: 40px; transform: translateY(-50%); }
-        #arrow-8-1 { left: 50%; bottom: 100%; height: 40px; transform: translateX(-50%); }
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .game-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+        }
+
+        .game-container.active {
+            display: block;
+        }
+
+        .win-message {
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="min-h-screen">
 
-    <div id="viewport">
-        </div>
+    <!-- Landing Page -->
+    <div id="landing-page" class="min-h-screen">
+        <!-- Navigation -->
+        <nav class="relative z-10 p-6">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="text-2xl font-bold text-white">Recursion</div>
+            </div>
+        </nav>
 
-    <script>
-        const viewport = document.getElementById('viewport');
+        <!-- Hero Section -->
+        <section class="relative py-20 px-6">
+            <div class="max-w-7xl mx-auto text-center">
+                <h1 class="text-6xl md:text-8xl font-bold text-white mb-6 slide-up">
+                    Recursion
+                </h1>
+                <p class="text-xl md:text-2xl text-blue-200 mb-12 max-w-3xl mx-auto fade-in">
+                    Supporting every technical founder on their lab-to-market journey
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in">
+                    <button id="try-recursion-btn" class="btn-primary text-white px-8 py-4 rounded-lg font-semibold text-lg">
+                        Try Recursion
+                    </button>
+                    <a href="mailto:info@recursionworks.com" class="btn-secondary text-white px-8 py-4 rounded-lg font-semibold text-lg">
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </section>
 
-        /**
-         * Creates a complete diagram element with 8 boxes and arrows.
-         * @returns {HTMLElement} The diagram container element.
-         */
-        function createDiagram() {
-            const container = document.createElement('div');
-            container.className = 'diagram-container';
+        <!-- Game Section (initially hidden) -->
+        <section id="game-section" class="py-12 px-6 hidden">
+            <div class="max-w-5xl mx-auto">
+                <div class="card-glass p-4 rounded-lg">
+                    <div class="flex justify-end mb-4">
+                        <button id="reset-button" class="btn-secondary text-white font-bold py-2 px-4 rounded-lg text-sm">Reset</button>
+                    </div>
+                    <div class="relative" style="height: 325px; overflow: hidden;">
+                        <canvas id="game-canvas" style="width: 100%; height: 650px; border-radius: 8px;"></canvas>
+                        
+                        <!-- Win Message -->
+                        <div id="win-message" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 opacity-0 transform scale-95 pointer-events-none z-20 rounded-lg">
+                            <div class="text-center">
+                                <h2 class="text-6xl font-extrabold text-green-400 mb-4">You Win!</h2>
+                                <p class="text-2xl text-blue-200">Congratulations! You've mastered the puzzle.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
 
-            const boxesData = [
-                { id: 1, gridPos: '1 / 1' }, { id: 2, gridPos: '1 / 2' },
-                { id: 3, gridPos: '1 / 3' }, { id: 4, gridPos: '1 / 4' },
-                { id: 8, gridPos: '2 / 1' }, { id: 7, gridPos: '2 / 2' },
-                { id: 6, gridPos: '2 / 3' }, { id: 5, gridPos: '2 / 4' }
-            ];
-            
-            const arrowsData = [
-                { id: 'arrow-1-2', parent: 1, class: 'arrow right' }, { id: 'arrow-2-3', parent: 2, class: 'arrow right' },
-                { id: 'arrow-3-4', parent: 3, class: 'arrow right' }, { id: 'arrow-4-5', parent: 4, class: 'arrow down' },
-                { id: 'arrow-5-6', parent: 6, class: 'arrow left' },  { id: 'arrow-6-7', parent: 7, class: 'arrow left' },
-                { id: 'arrow-7-8', parent: 8, class: 'arrow left' },  { id: 'arrow-8-1', parent: 1, class: 'arrow up' }
-            ];
 
-            const boxElements = {};
+    <script type="module">
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
 
-            // Create boxes
-            boxesData.forEach(data => {
-                const box = document.createElement('div');
-                box.className = 'box';
-                box.dataset.id = `box-${data.id}`;
-                box.style.gridArea = data.gridPos;
-                container.appendChild(box);
-                boxElements[data.id] = box;
+        // ===== GAME CONSTANTS =====
+        const GAME_CONFIG = {
+            NUM_DISKS: 5,
+            POLE_HEIGHT: 10, // 2x larger
+            POLE_RADIUS: 0.2, // 2x larger
+            BASE_WIDTH: 24, // 2x larger
+            BASE_HEIGHT: 1.0, // 2x larger
+            DISK_HEIGHT: 1.0, // 2x larger
+            POLE_POSITIONS: [-8, 0, 8], // 2x larger spacing
+            DISK_COLORS: [0xfb7185, 0xfb923c, 0xfacc15, 0x4ade80, 0x38bdf8, 0x818cf8, 0xc084fc],
+            ANIMATION_SPEED: 0.05
+        };
+
+        // ===== THREE.JS SETUP =====
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000); // Reduced FOV from 75 to 45
+        const renderer = new THREE.WebGLRenderer({ 
+            canvas: document.getElementById('game-canvas'), 
+            antialias: true, 
+            alpha: true 
+        });
+        
+        // Set initial size - will be updated when game is shown
+        renderer.setSize(800, 600); // Default size
+        renderer.setClearColor(0x000000, 0);
+
+        // ===== LIGHTING SETUP =====
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7.5);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        // ===== GAME STATE =====
+        const gameState = {
+            towers: [[], [], []],
+            disks: [],
+            selectedDisk: null,
+            sourcePole: -1,
+            moveCount: 0,
+            animationData: null,
+            isDragging: false
+        };
+
+        // ===== UI ELEMENTS =====
+        const ui = {
+            resetButton: document.getElementById('reset-button'),
+            winMessage: document.getElementById('win-message'),
+            tryRecursionBtn: document.getElementById('try-recursion-btn'),
+            gameSection: document.getElementById('game-section')
+        };
+
+        // ===== GAME OBJECTS =====
+        const gameObjects = {
+            base: null,
+            poles: [],
+            disks: [],
+            dropZones: [] // Invisible larger areas for easier dropping
+        };
+
+        // Create base platform
+        function createBase() {
+            const baseGeometry = new THREE.BoxGeometry(
+                GAME_CONFIG.BASE_WIDTH, 
+                GAME_CONFIG.BASE_HEIGHT, 
+                GAME_CONFIG.BASE_WIDTH / 2
+            );
+            const baseMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x4B5563, 
+                roughness: 0.5 
             });
-
-            // Create and attach arrows to their parent boxes
-            arrowsData.forEach(data => {
-                const arrow = document.createElement('div');
-                arrow.id = data.id;
-                arrow.className = data.class;
-                boxElements[data.parent].appendChild(arrow);
-            });
             
-            return container;
+            gameObjects.base = new THREE.Mesh(baseGeometry, baseMaterial);
+            gameObjects.base.position.y = -GAME_CONFIG.BASE_HEIGHT / 2;
+            scene.add(gameObjects.base);
         }
 
-        // --- Main Logic ---
+        // Create poles
+        function createPoles() {
+            const poleGeometry = new THREE.CylinderGeometry(
+                GAME_CONFIG.POLE_RADIUS, 
+                GAME_CONFIG.POLE_RADIUS, 
+                GAME_CONFIG.POLE_HEIGHT, 
+                16
+            );
+            const poleMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x6B7280, 
+                metalness: 0.5, 
+                roughness: 0.3 
+            });
+            
+            GAME_CONFIG.POLE_POSITIONS.forEach((pos, index) => {
+                const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+                pole.position.set(pos, GAME_CONFIG.POLE_HEIGHT / 2, 0);
+                pole.userData.isPole = true;
+                pole.userData.poleIndex = index;
+                scene.add(pole);
+                gameObjects.poles.push(pole);
+            });
+        }
 
-        // Listen for clicks anywhere in the viewport
-        viewport.addEventListener('click', function(event) {
-            // Check if the clicked element is a box and doesn't already contain a zoomed diagram
-            if (event.target.matches('.box') && !event.target.querySelector('.diagram-container')) {
-                const box = event.target;
-                const diagramContainer = box.parentElement;
+        // Create invisible drop zones (larger areas for easier dropping)
+        function createDropZones() {
+            const dropZoneGeometry = new THREE.CylinderGeometry(
+                4.0, // 2x larger drop zone radius
+                4.0, 
+                GAME_CONFIG.POLE_HEIGHT, 
+                16
+            );
+            const dropZoneMaterial = new THREE.MeshBasicMaterial({ 
+                visible: false, // Invisible
+                transparent: true,
+                opacity: 0
+            });
+            
+            GAME_CONFIG.POLE_POSITIONS.forEach((pos, index) => {
+                const dropZone = new THREE.Mesh(dropZoneGeometry, dropZoneMaterial);
+                dropZone.position.set(pos, GAME_CONFIG.POLE_HEIGHT / 2, 0);
+                dropZone.userData.isDropZone = true;
+                dropZone.userData.poleIndex = index;
+                scene.add(dropZone);
+                gameObjects.dropZones.push(dropZone);
+            });
+        }
 
-                // Make other boxes in the same diagram unclickable
-                diagramContainer.querySelectorAll('.box').forEach(b => {
-                    if (b !== box) b.style.pointerEvents = 'none';
+
+        // Create disks
+        function createDisks() {
+            const diskGeometry = (radius) => new THREE.CylinderGeometry(
+                radius, 
+                radius, 
+                GAME_CONFIG.DISK_HEIGHT, 
+                32
+            );
+            
+            for (let i = 0; i < GAME_CONFIG.NUM_DISKS; i++) {
+                const radius = 3.0 - i * 0.4; // 2x larger radius range
+                const material = new THREE.MeshStandardMaterial({ 
+                    color: GAME_CONFIG.DISK_COLORS[i % GAME_CONFIG.DISK_COLORS.length], 
+                    metalness: 0.2, 
+                    roughness: 0.4 
                 });
-
-                // 1. Calculate the scale factor needed to make the box fill the viewport
-                const viewportWidth = viewport.clientWidth;
-                const boxWidth = box.offsetWidth;
-                const scale = viewportWidth / boxWidth;
                 
-                // 2. Calculate the position of the box relative to the viewport
-                const boxRect = box.getBoundingClientRect();
-                
-                // 3. Set the transform-origin of the container to the center of the clicked box
-                // We use getBoundingClientRect because it's relative to the viewport, which handles
-                // any existing transforms on parent elements.
-                const originX = boxRect.left + boxRect.width / 2;
-                const originY = boxRect.top + boxRect.height / 2;
-                diagramContainer.style.transformOrigin = `${originX}px ${originY}px`;
-                
-                // 4. Apply the scale transform to zoom in
-                diagramContainer.style.transform = `scale(${scale})`;
-
-                // 5. Create a new diagram and append it inside the clicked box
-                const newDiagram = createDiagram();
-                box.appendChild(newDiagram);
-                
-                // 6. After the zoom animation finishes, fade in the new diagram
-                setTimeout(() => {
-                    newDiagram.style.opacity = '1';
-                }, 800); // Should match the transition delay in CSS
+                const disk = new THREE.Mesh(diskGeometry(radius), material);
+                disk.userData.diskId = i;
+                disk.userData.radius = radius;
+                gameObjects.disks.push(disk);
             }
-        });
+        }
 
-        // Create and append the initial diagram on page load
-        viewport.appendChild(createDiagram());
+        // ===== GAME LOGIC =====
+        function resetGame() {
+            try {
+                // Clear existing state
+                gameState.towers = [[], [], []];
+                gameObjects.disks.forEach(disk => scene.remove(disk));
+                gameObjects.disks = [];
+                
+                // Recreate game objects
+                createDisks();
+
+                // Place disks on the first pole, largest at the bottom
+                for (let i = 0; i < GAME_CONFIG.NUM_DISKS; i++) {
+                    const disk = gameObjects.disks[i];
+                    gameState.towers[0].push(disk);
+                    scene.add(disk);
+                    positionDiskOnPole(disk, 0);
+                }
+
+                // Reset UI and state
+                gameState.moveCount = 0;
+                gameState.selectedDisk = null;
+                gameState.sourcePole = -1;
+                gameState.animationData = null;
+                gameState.isDragging = false;
+                
+                // Hide win message
+                ui.winMessage.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+            } catch (error) {
+                console.error('Error resetting game:', error);
+            }
+        }
+
+        function positionDiskOnPole(disk, poleIndex) {
+            const yPos = gameState.towers[poleIndex].indexOf(disk) * GAME_CONFIG.DISK_HEIGHT + GAME_CONFIG.DISK_HEIGHT / 2;
+            disk.position.set(GAME_CONFIG.POLE_POSITIONS[poleIndex], yPos, 0);
+        }
+
+        function checkWin() {
+            if (gameState.towers[2].length === GAME_CONFIG.NUM_DISKS) {
+                ui.winMessage.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+            }
+        }
+
+        // ===== INTERACTION SYSTEM =====
+        const interaction = {
+            raycaster: new THREE.Raycaster(),
+            mouse: new THREE.Vector2(),
+            dragPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -(GAME_CONFIG.POLE_HEIGHT + 2)),
+            intersectionPoint: new THREE.Vector3()
+        };
+
+        function getIntersectedTower() {
+            interaction.raycaster.setFromCamera(interaction.mouse, camera);
+            const objectsToIntersect = [
+                ...gameObjects.dropZones, // Use drop zones instead of poles for easier targeting
+                ...gameObjects.disks.filter(d => d !== gameState.selectedDisk)
+            ];
+            const intersects = interaction.raycaster.intersectObjects(objectsToIntersect);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                if (clickedObject.userData.isDropZone) {
+                    return clickedObject.userData.poleIndex;
+                } else if (clickedObject.userData.diskId !== undefined) {
+                    for (let i = 0; i < gameState.towers.length; i++) {
+                        if (gameState.towers[i].includes(clickedObject)) {
+                            return i;
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+        
+        function updateMouse(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            interaction.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            interaction.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        }
+
+        function onMouseDown(event) {
+            if (gameState.animationData || gameState.isDragging) return;
+            
+            try {
+                updateMouse(event);
+                const poleIndex = getIntersectedTower();
+
+                if (poleIndex !== -1) {
+                    const sourceTower = gameState.towers[poleIndex];
+                    if (sourceTower.length > 0) {
+                        gameState.isDragging = true;
+                        gameState.selectedDisk = sourceTower[sourceTower.length - 1];
+                        gameState.selectedDisk.scale.set(0.85, 0.85, 0.85); // Minimal scaling needed with distant camera
+                        gameState.sourcePole = poleIndex;
+
+                        // Animate lifting the disk
+                        gameState.animationData = {
+                            disk: gameState.selectedDisk,
+                            phase: 'up-only',
+                            progress: 0,
+                            startPos: gameState.selectedDisk.position.clone(),
+                            endPos: new THREE.Vector3(
+                                GAME_CONFIG.POLE_POSITIONS[poleIndex], 
+                                GAME_CONFIG.POLE_HEIGHT + 1, 
+                                0
+                            )
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('Error in onMouseDown:', error);
+            }
+        }
+
+        function onMouseMove(event) {
+            if (!gameState.isDragging || !gameState.selectedDisk) return;
+            
+            try {
+                updateMouse(event);
+                
+                // Only move the disk with the mouse if its "lift" animation is complete
+                if (gameState.animationData) return;
+
+                interaction.raycaster.setFromCamera(interaction.mouse, camera);
+                interaction.raycaster.ray.intersectPlane(
+                    interaction.dragPlane, 
+                    interaction.intersectionPoint
+                );
+                gameState.selectedDisk.position.copy(interaction.intersectionPoint);
+
+                // Pole detection (no visual highlighting)
+                const poleIndex = getIntersectedTower();
+            } catch (error) {
+                console.error('Error in onMouseMove:', error);
+            }
+        }
+
+        function onMouseUp(event) {
+            if (!gameState.isDragging || !gameState.selectedDisk) return;
+
+            try {
+                // Don't reset scale here - let the animation handle it
+                gameState.isDragging = false;
+
+                const targetPoleIndex = getIntersectedTower();
+                const targetTower = targetPoleIndex !== -1 ? gameState.towers[targetPoleIndex] : null;
+                const topDisk = (targetTower && targetTower.length > 0) ? targetTower[targetTower.length - 1] : null;
+                const isValidMove = targetPoleIndex !== -1 && 
+                    (!topDisk || gameState.selectedDisk.userData.radius < topDisk.userData.radius);
+
+                if (isValidMove) {
+                    // Place disk on the new tower
+                    const sourceTower = gameState.towers[gameState.sourcePole];
+                    sourceTower.pop();
+                    targetTower.push(gameState.selectedDisk);
+                    gameState.moveCount++;
+
+                    gameState.animationData = {
+                        disk: gameState.selectedDisk,
+                        phase: 'down',
+                        progress: 0,
+                        startPos: gameState.selectedDisk.position.clone(),
+                        endPos: new THREE.Vector3(
+                            GAME_CONFIG.POLE_POSITIONS[targetPoleIndex], 
+                            (targetTower.length - 1) * GAME_CONFIG.DISK_HEIGHT + GAME_CONFIG.DISK_HEIGHT / 2, 
+                            0
+                        )
+                    };
+                } else {
+                    // Invalid move, return the disk to its original tower
+                    const sourceTower = gameState.towers[gameState.sourcePole];
+                    gameState.animationData = {
+                        disk: gameState.selectedDisk,
+                        phase: 'down',
+                        progress: 0,
+                        startPos: gameState.selectedDisk.position.clone(),
+                        endPos: new THREE.Vector3(
+                            GAME_CONFIG.POLE_POSITIONS[gameState.sourcePole], 
+                            (sourceTower.length - 1) * GAME_CONFIG.DISK_HEIGHT + GAME_CONFIG.DISK_HEIGHT / 2, 
+                            0
+                        )
+                    };
+                }
+                
+                gameState.selectedDisk = null;
+                gameState.sourcePole = -1;
+            } catch (error) {
+                console.error('Error in onMouseUp:', error);
+            }
+        }
+        
+        // ===== RENDERING & ANIMATION =====
+        camera.position.set(0, 20, 35); // Pulled back further for larger components
+        camera.lookAt(0, 4, 0);
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (gameState.animationData) {
+                const speed = GAME_CONFIG.ANIMATION_SPEED;
+                gameState.animationData.progress += speed;
+                
+                if (gameState.animationData.phase === 'up') {
+                    gameState.animationData.disk.position.lerp(
+                        gameState.animationData.midPos, 
+                        gameState.animationData.progress
+                    );
+                    if (gameState.animationData.progress >= 1) {
+                        gameState.animationData.progress = 0;
+                        gameState.animationData.phase = 'across';
+                    }
+                } else if (gameState.animationData.phase === 'across') {
+                    // Skip to 'down' phase for simplicity
+                    gameState.animationData.phase = 'down';
+                    gameState.animationData.startPos = gameState.animationData.disk.position.clone();
+                } else if (gameState.animationData.phase === 'down') {
+                    gameState.animationData.disk.position.lerp(
+                        gameState.animationData.endPos, 
+                        gameState.animationData.progress
+                    );
+                    if (gameState.animationData.progress >= 1) {
+                        gameState.animationData.disk.position.copy(gameState.animationData.endPos);
+                        // Reset scale to normal size when placed
+                        gameState.animationData.disk.scale.set(1, 1, 1);
+                        checkWin();
+                        gameState.animationData = null;
+                    }
+                } else if (gameState.animationData.phase === 'up-only') {
+                    gameState.animationData.disk.position.lerp(
+                        gameState.animationData.endPos, 
+                        gameState.animationData.progress
+                    );
+                    if (gameState.animationData.progress >= 1) {
+                        gameState.animationData.disk.position.copy(gameState.animationData.endPos);
+                        gameState.animationData = null;
+                    }
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // ===== EVENT LISTENERS =====
+        function onWindowResize() {
+            try {
+                const canvas = document.getElementById('game-canvas');
+                const container = canvas.parentElement;
+                const rect = container.getBoundingClientRect();
+                
+                // Only resize if container is visible and has dimensions
+                if (rect.width > 0 && rect.height > 0) {
+                    camera.aspect = rect.width / rect.height;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(rect.width, rect.height);
+                }
+            } catch (error) {
+                console.error('Error resizing window:', error);
+            }
+        }
+
+        function initializeEventListeners() {
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            ui.resetButton.addEventListener('click', resetGame);
+            ui.tryRecursionBtn.addEventListener('click', toggleGame);
+        }
+
+        // ===== GAME TOGGLE FUNCTIONS =====
+        function toggleGame() {
+            if (ui.gameSection.classList.contains('hidden')) {
+                ui.gameSection.classList.remove('hidden');
+                // Wait for the section to be visible, then initialize and reset
+                setTimeout(() => {
+                    onWindowResize();
+                    // Create game objects if they don't exist
+                    if (gameObjects.base === null) {
+                        createBase();
+                        createPoles();
+                        createDropZones();
+                    }
+                    resetGame();
+                }, 100);
+                // Scroll to game section
+                ui.gameSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                ui.gameSection.classList.add('hidden');
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        function initializeGame() {
+            try {
+                initializeEventListeners();
+                animate();
+            } catch (error) {
+                console.error('Error initializing game:', error);
+            }
+        }
+
+        // Initialize the game (but don't create objects until needed)
+        initializeGame();
+
     </script>
 </body>
 </html>
+
+
+
