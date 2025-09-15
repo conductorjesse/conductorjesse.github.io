@@ -67,6 +67,37 @@
             display: block;
         }
 
+        .game-section-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 99;
+            display: none;
+        }
+
+        .game-overlay.active {
+            display: block;
+        }
+
         .win-message {
             transition: opacity 0.5s ease, transform 0.5s ease;
         }
@@ -108,45 +139,96 @@
         <section class="relative py-20 px-6">
             <div class="max-w-7xl mx-auto text-center">
                 <h1 class="text-6xl md:text-8xl font-bold text-white mb-6 slide-up">
-                    Recursion
+                    We Exist to Helzp Scientists Win.
                 </h1>
-                <p class="text-xl md:text-2xl text-blue-200 mb-12 max-w-3xl mx-auto fade-in">
-                    Supporting every technical founder on their lab-to-market journey
+                <p class="text-xl md:text-2xl text-blue-200 mb-12 max-w-4xl mx-auto fade-in">
+                    We empower scientific innovators to deploy world-changing climate technologies through commercial skills, risk tolerance, and community support.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in">
                     <button id="try-recursion-btn" class="btn-primary text-white px-8 py-4 rounded-lg font-semibold text-lg">
                         Try Recursion
                     </button>
                     <a href="mailto:info@recursionworks.com" class="btn-secondary text-white px-8 py-4 rounded-lg font-semibold text-lg">
-                        Contact Us
+                        Get in touch
                     </a>
                 </div>
             </div>
         </section>
 
-        <!-- Game Section (initially hidden) -->
-        <section id="game-section" class="py-12 px-6 hidden">
-            <div class="max-w-5xl mx-auto">
-                <div class="card-glass p-4 rounded-lg">
-                    <div class="flex justify-end mb-4">
-                        <button id="reset-button" class="btn-secondary text-white font-bold py-2 px-4 rounded-lg text-sm">Reset</button>
-                    </div>
-                    <div class="relative" style="height: 325px; overflow: hidden;">
-                        <canvas id="game-canvas" style="width: 100%; height: 650px; border-radius: 8px;"></canvas>
-                        
-                        <!-- Win Message -->
-                        <div id="win-message" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 opacity-0 transform scale-95 pointer-events-none z-20 rounded-lg">
-                            <div class="text-center">
-                                <h2 class="text-6xl font-extrabold text-green-400 mb-4">You Win!</h2>
-                                <p class="text-2xl text-blue-200">Congratulations! You've mastered the puzzle.</p>
-                            </div>
+        <!-- What We Do Section -->
+        <section class="py-20 px-6">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-12 text-center">What We Do</h2>
+                <div class="max-w-4xl mx-auto">
+                    <p class="text-lg text-blue-200 mb-8 leading-relaxed">
+                        We provide hands-on coaching and strategic guidance to scientists and early-stage teams. Our core methodology uses techno-economic analysis (TEA) as a strategic framework to drive decision-making and action.
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-8 mb-12">
+                        <div class="card-glass p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-white mb-4">Coaching & Support</h3>
+                            <p class="text-blue-200">6-8 week TEA development sprints to fractional weekly support with dedicated commercial bandwidth.</p>
+                        </div>
+                        <div class="card-glass p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-white mb-4">Programming</h3>
+                            <p class="text-blue-200">Commercialization bootcamps, TEA workshops, and investor readiness training.</p>
+                        </div>
+                        <div class="card-glass p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-white mb-4">Train the Trainer</h3>
+                            <p class="text-blue-200">University Climate Ventures program to reach scientists worldwide through faculty and curriculum.</p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+
+        <!-- Game Overlay -->
+        <div id="game-overlay" class="game-overlay"></div>
+        
+        <!-- Game Section Modal (initially hidden) -->
+        <div id="game-section" class="game-section-modal hidden" onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-white">Try Recursion</h3>
+                <button id="close-game-btn" class="text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+            <div class="flex justify-end mb-4">
+                <button id="reset-button" class="btn-secondary text-white font-bold py-2 px-4 rounded-lg text-sm">Reset</button>
+            </div>
+            <div class="relative" style="height: 400px; overflow: hidden;">
+                <canvas id="game-canvas" style="width: 100%; height: 400px; border-radius: 8px;"></canvas>
+                
+                <!-- Win Message -->
+                <div id="win-message" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-70 opacity-0 transform scale-95 pointer-events-none z-20 rounded-lg">
+                    <div class="text-center">
+                        <h2 class="text-4xl font-extrabold text-green-400 mb-4">You Win!</h2>
+                        <p class="text-xl text-blue-200">Congratulations! You've mastered the puzzle.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="py-16 px-6 bg-slate-900/50">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">Ready to Get Started?</h2>
+            <p class="text-lg text-blue-200 mb-8 max-w-3xl mx-auto">
+                Scientists commercializing research or supporters of climate innovation - let's connect!
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <a href="mailto:info@recursionworks.com" class="btn-primary text-white px-8 py-4 rounded-lg font-semibold text-lg">
+                    Get in touch!
+                </a>
+            </div>
+            <div class="border-t border-slate-700 pt-8">
+                <div class="text-blue-300 mb-4">
+                    <a href="mailto:info@recursionworks.com" class="hover:text-white transition-colors">info@recursionworks.com</a>
+                </div>
+                <div class="text-blue-300">
+                    <a href="https://www.linkedin.com/company/recursionworks/about/" class="hover:text-white transition-colors" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script type="module">
         import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
@@ -202,7 +284,9 @@
             resetButton: document.getElementById('reset-button'),
             winMessage: document.getElementById('win-message'),
             tryRecursionBtn: document.getElementById('try-recursion-btn'),
-            gameSection: document.getElementById('game-section')
+            gameSection: document.getElementById('game-section'),
+            gameOverlay: document.getElementById('game-overlay'),
+            closeGameBtn: document.getElementById('close-game-btn')
         };
 
         // ===== GAME OBJECTS =====
@@ -571,13 +655,17 @@
             window.addEventListener('mouseup', onMouseUp);
             ui.resetButton.addEventListener('click', resetGame);
             ui.tryRecursionBtn.addEventListener('click', toggleGame);
+            ui.closeGameBtn.addEventListener('click', closeGame);
+            ui.gameOverlay.addEventListener('click', closeGame);
         }
 
         // ===== GAME TOGGLE FUNCTIONS =====
         function toggleGame() {
             if (ui.gameSection.classList.contains('hidden')) {
                 ui.gameSection.classList.remove('hidden');
-                // Wait for the section to be visible, then initialize and reset
+                ui.gameOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent background scrolling
+                // Wait for the modal to be visible, then initialize and reset
                 setTimeout(() => {
                     onWindowResize();
                     // Create game objects if they don't exist
@@ -588,11 +676,15 @@
                     }
                     resetGame();
                 }, 100);
-                // Scroll to game section
-                ui.gameSection.scrollIntoView({ behavior: 'smooth' });
             } else {
-                ui.gameSection.classList.add('hidden');
+                closeGame();
             }
+        }
+
+        function closeGame() {
+            ui.gameSection.classList.add('hidden');
+            ui.gameOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto'; // Restore scrolling
         }
 
         // ===== INITIALIZATION =====
